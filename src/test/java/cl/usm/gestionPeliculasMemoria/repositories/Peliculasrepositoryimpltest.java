@@ -1,0 +1,165 @@
+package cl.usm.gestionPeliculasMemoria.repositories;
+
+import cl.usm.gestionPeliculasMemoria.entities.Comentario;
+import cl.usm.gestionPeliculasMemoria.entities.Pelicula;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+@DisplayName("Tests de PeliculasRepositoryImpl")
+class PeliculasRepositoryImplTest {
+
+    private PeliculasRepositoryImpl repository;
+
+    @BeforeEach
+    void setUp() {
+        repository = new PeliculasRepositoryImpl();
+    }
+    @Test
+    @DisplayName("insert: guarda y retorna la pelicula correctamente")
+    void insert_deberiaGuardarYRetornarPelicula() {
+        Pelicula pelicula = new Pelicula("p1", "Inception", "Nolan", null, null);
+
+        Pelicula resultado = repository.insert(pelicula);
+
+        assertNotNull(resultado);
+        assertEquals("p1", resultado.getId());
+        assertEquals("Inception", resultado.getTitulo());
+        assertEquals("Nolan", resultado.getDirector());
+    }
+
+    @Test
+    @DisplayName("insert: la pelicula insertada aparece en findAll")
+    void insert_deberiaAparecerEnFindAll() {
+        Pelicula pelicula = new Pelicula("p2", "Matrix", "Wachowski", null, null);
+
+        repository.insert(pelicula);
+        List<Pelicula> todas = repository.findAll();
+
+        assertEquals(1, todas.size());
+        assertEquals("p2", todas.get(0).getId());
+    }
+
+    @Test
+    @DisplayName("insert: lanza excepcion cuando el ID es nulo")
+    void insert_deberiaLanzarExcepcionSiIdEsNulo() {
+        Pelicula pelicula = new Pelicula(null, "Sin ID", "Director", null, null);
+
+        IllegalArgumentException ex = assertThrows(
+                IllegalArgumentException.class,
+                () -> repository.insert(pelicula)
+        );
+        assertEquals("El ID de la pelicula no puede ser nulo", ex.getMessage());
+    }
+    @Test
+    @DisplayName("insert: lanza excepcion cuando el ID ya existe (case-insensitive)")
+    void insert_deberiaLanzarExcepcionSiIdDuplicado() {
+        repository.insert(new Pelicula("p1", "Inception", "Nolan", null, null));
+
+        IllegalArgumentException ex = assertThrows(
+                IllegalArgumentException.class,
+                () -> repository.insert(new Pelicula("P1", "Otro", "Otro", null, null))
+        );
+        assertTrue(ex.getMessage().contains("ya existe"));
+    }
+    @Test
+    @DisplayName("insert: permite multiples peliculas con IDs distintos")
+    void insert_deberiaPermitirMultiplesPeliculasConIdDistinto() {
+        repository.insert(new Pelicula("p1", "Inception", "Nolan", null, null));
+        repository.insert(new Pelicula("p2", "Matrix", "Wachowski", null, null));
+        repository.insert(new Pelicula("p3", "Interstellar", "Nolan", null, null));
+
+        assertEquals(3, repository.findAll().size());
+    }
+    @Test
+    @DisplayName("insert: guarda pelicula con comentarios")
+    void insert_deberiaGuardarPeliculaConComentarios() {
+        Comentario[] comentarios = {
+                new Comentario("usuario1", "Excelente"),
+                new Comentario("usuario2", "Muy buena")
+        };
+        Pelicula pelicula = new Pelicula("p1", "Inception", "Nolan", "token123", comentarios);
+
+        Pelicula resultado = repository.insert(pelicula);
+
+        assertNotNull(resultado.getComentarios());
+        assertEquals(2, resultado.getComentarios().length);
+    }
+    @Test
+    @DisplayName("findAll: retorna lista vacia cuando no hay peliculas")
+    void findAll_deberiaRetornarListaVaciaSiNoHayPeliculas() {
+        List<Pelicula> resultado = repository.findAll();
+
+        assertNotNull(resultado);
+        assertTrue(resultado.isEmpty());
+    }
+
+    @Test
+    @DisplayName("findAll: retorna copia independiente del storage")
+    void findAll_deberiaRetornarCopiaIndependiente() {
+        repository.insert(new Pelicula("p1", "Inception", "Nolan", null, null));
+
+        List<Pelicula> lista1 = repository.findAll();
+        lista1.clear();
+        List<Pelicula> lista2 = repository.findAll();
+
+        assertEquals(1, lista2.size());
+    }
+
+    @Test
+    @DisplayName("findAll: retorna todas las peliculas insertadas")
+    void findAll_deberiaRetornarTodasLasPeliculas() {
+        repository.insert(new Pelicula("p1", "Inception", "Nolan", null, null));
+        repository.insert(new Pelicula("p2", "Matrix", "Wachowski", null, null));
+
+        List<Pelicula> resultado = repository.findAll();
+
+        assertEquals(2, resultado.size());
+    }
+    @Test
+    @DisplayName("findById: retorna la pelicula correcta por ID exacto")
+    void findById_deberiaRetornarPeliculaPorId() {
+        repository.insert(new Pelicula("p1", "Inception", "Nolan", null, null));
+
+        Pelicula resultado = repository.findById("p1");
+
+        assertNotNull(resultado);
+        assertEquals("p1", resultado.getId());
+        assertEquals("Inception", resultado.getTitulo());
+    }
+
+    @Test
+    @DisplayName("findById: busqueda es case-insensitive")
+    void findById_deberiaBuscarCaseInsensitive() {
+        repository.insert(new Pelicula("p1", "Inception", "Nolan", null, null));
+        Pelicula resultado = repository.findById("P1");
+        assertNotNull(resultado);
+        assertEquals("p1", resultado.getId());
+    }
+    @Test
+    @DisplayName("findById: retorna null si el ID no existe")
+    void findById_deberiaRetornarNullSiNoExiste() {
+        Pelicula resultado = repository.findById("noExiste");
+        assertNull(resultado);
+    }
+    @Test
+    @DisplayName("findById: retorna null si el ID es nulo")
+    void findById_deberiaRetornarNullSiIdEsNulo() {
+        Pelicula resultado = repository.findById(null);
+        assertNull(resultado);
+    }
+    @Test
+    @DisplayName("findById: retorna la pelicula correcta entre varias")
+    void findById_deberiaRetornarPeliculaCorrectaEntreVarias() {
+        repository.insert(new Pelicula("p1", "Inception", "Nolan", null, null));
+        repository.insert(new Pelicula("p2", "Matrix", "Wachowski", null, null));
+        repository.insert(new Pelicula("p3", "Interstellar", "Nolan", null, null));
+        Pelicula resultado = repository.findById("p2");
+        assertNotNull(resultado);
+        assertEquals("Matrix", resultado.getTitulo());
+    }
+}
