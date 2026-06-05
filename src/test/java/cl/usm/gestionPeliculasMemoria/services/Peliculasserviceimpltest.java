@@ -26,9 +26,6 @@ class PeliculasServiceImplTest {
 
     @InjectMocks
     private PeliculasServiceImpl peliculasService;
-
-    // ───────────── createPelicula ─────────────
-
     @Test
     @DisplayName("createPelicula: asigna tokenDescarga y retorna pelicula creada")
     void createPelicula_deberiaAsignarTokenYRetornarPelicula() {

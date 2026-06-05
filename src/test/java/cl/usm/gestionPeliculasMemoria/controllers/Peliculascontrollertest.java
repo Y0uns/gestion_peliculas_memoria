@@ -30,7 +30,6 @@ class PeliculasControllerTest {
     @InjectMocks
     private PeliculasController peliculasController;
 
-    // ───────────── GET /peliculas (sin query) ─────────────
 
     @Test
     @DisplayName("getAll: retorna 200 con lista de peliculas")
@@ -73,8 +72,6 @@ class PeliculasControllerTest {
         assertEquals(500, response.getStatusCode().value());
     }
 
-    // ───────────── GET /peliculas?q=... ─────────────
-
     @Test
     @DisplayName("getAll: con query llama a filter y retorna 200")
     void getAll_conQuery_deberiaFiltrarYRetornar200() {
@@ -115,8 +112,6 @@ class PeliculasControllerTest {
         assertTrue(response.getBody().isEmpty());
     }
 
-    // ───────────── POST /peliculas ─────────────
-
     @Test
     @DisplayName("createPelicula: retorna 200 con pelicula creada")
     void createPelicula_deberiaRetornar200ConPeliculaCreada() {
@@ -144,8 +139,6 @@ class PeliculasControllerTest {
 
         assertEquals(500, response.getStatusCode().value());
     }
-
-    // ───────────── GET /peliculas/{id} ─────────────
 
     @Test
     @DisplayName("findById: retorna 200 con pelicula encontrada")
@@ -180,8 +173,6 @@ class PeliculasControllerTest {
 
         assertEquals(500, response.getStatusCode().value());
     }
-
-    // ───────────── GET /peliculas/{id}/comentarios ─────────────
 
     @Test
     @DisplayName("getComentarios: retorna 200 con array de comentarios")
